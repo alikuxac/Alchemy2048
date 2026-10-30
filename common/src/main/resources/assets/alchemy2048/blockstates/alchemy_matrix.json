@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "alchemy2048:block/alchemy_matrix"
+    },
+    "facing=south": {
+      "model": "alchemy2048:block/alchemy_matrix",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "alchemy2048:block/alchemy_matrix",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "alchemy2048:block/alchemy_matrix",
+      "y": 90
+    }
+  }
+}

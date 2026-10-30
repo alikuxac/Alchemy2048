@@ -1,0 +1,19 @@
+{
+  "type": "alchemy2048:evolution_tree",
+  "starter": {
+    "item": "minecraft:dirt"
+  },
+  "ladder": [
+    "minecraft:coarse_dirt",
+    "minecraft:rooted_dirt",
+    "minecraft:dirt",
+    "minecraft:mud",
+    "minecraft:packed_mud",
+    "minecraft:clay",
+    "minecraft:moss_block",
+    "minecraft:podzol",
+    "minecraft:mycelium",
+    "minecraft:soul_sand",
+    "minecraft:soul_soil"
+  ]
+}

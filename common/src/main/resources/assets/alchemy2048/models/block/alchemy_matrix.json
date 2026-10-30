@@ -1,0 +1,10 @@
+{
+  "parent": "minecraft:block/orientable_with_bottom",
+  "textures": {
+    "particle": "alchemy2048:block/alchemy_matrix_front",
+    "bottom": "alchemy2048:block/alchemy_matrix_bottom",
+    "top": "alchemy2048:block/alchemy_matrix_top",
+    "side": "alchemy2048:block/alchemy_matrix_side",
+    "front": "alchemy2048:block/alchemy_matrix_front"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "alchemy2048:evolution_tree",
+  "starter": {
+    "item": "minecraft:cobblestone"
+  },
+  "ladder": [
+    "minecraft:cobblestone",
+    "minecraft:stone",
+    "minecraft:smooth_stone",
+    "minecraft:cobbled_deepslate",
+    "minecraft:deepslate",
+    "minecraft:polished_deepslate",
+    "minecraft:obsidian",
+    "minecraft:crying_obsidian",
+    "minecraft:ancient_debris",
+    "minecraft:netherite_scrap",
+    "minecraft:netherite_ingot"
+  ]
+}

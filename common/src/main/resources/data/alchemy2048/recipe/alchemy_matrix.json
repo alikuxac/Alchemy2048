@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CPC",
+    "PTP",
+    "CPC"
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "P": {
+      "item": "minecraft:piston"
+    },
+    "T": {
+      "item": "minecraft:crafting_table"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "alchemy2048:alchemy_matrix"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "alchemy2048:evolution_tree",
+  "starter": {
+    "item": "minecraft:oak_log"
+  },
+  "ladder": [
+    "minecraft:oak_log",
+    "minecraft:oak_planks",
+    "minecraft:stripped_oak_log",
+    "minecraft:charcoal",
+    "minecraft:coal",
+    "minecraft:coal_block",
+    "minecraft:copper_block",
+    "minecraft:iron_block",
+    "minecraft:gold_block",
+    "minecraft:emerald_block",
+    "minecraft:diamond_block"
+  ]
+}

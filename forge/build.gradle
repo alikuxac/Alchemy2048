@@ -1,0 +1,101 @@
+plugins {
+    id 'java-library'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.2.0'
+}
+
+version = rootProject.mod_version
+group = rootProject.mod_group_id
+
+base {
+    archivesName = "${rootProject.mod_id}"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(rootProject.java_version)
+    }
+}
+
+minecraft {
+    mappings channel: 'parchment', version: "${rootProject.parchment_mappings_version}-${rootProject.minecraft_version}"
+
+    runs {
+        client {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+            mods {
+                "${rootProject.mod_id}" {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+            args '--nogui'
+            mods {
+                "${rootProject.mod_id}" {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+configurations {
+    commonClasses
+    runtimeClasspath.extendsFrom commonClasses
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
+    commonClasses project(':common')
+}
+
+tasks.named('compileJava') {
+    classpath += configurations.commonClasses
+}
+
+tasks.named('jar', Jar) {
+    archiveFileName = "${rootProject.mod_id}-${rootProject.mod_version}+mc${rootProject.minecraft_version}-forge.jar"
+    from project(':common').sourceSets.main.output
+    manifest {
+        attributes([
+            'Specification-Title'     : rootProject.mod_id,
+            'Specification-Vendor'    : 'alikuxac',
+            'Specification-Version'   : '1',
+            'Implementation-Title'    : rootProject.mod_name,
+            'Implementation-Version'  : rootProject.mod_version,
+            'Implementation-Vendor'   : 'alikuxac',
+            'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+}
+
+tasks.withType(ProcessResources).configureEach {
+    var replaceProperties = [
+            minecraft_version      : rootProject.minecraft_version,
+            minecraft_version_range: rootProject.minecraft_version_range,
+            forge_version          : rootProject.forge_version,
+            forge_version_range    : rootProject.forge_version_range,
+            loader_version_range   : rootProject.loader_version_range,
+            mod_id                 : rootProject.mod_id,
+            mod_name               : rootProject.mod_name,
+            mod_license            : rootProject.mod_license,
+            mod_version            : rootProject.mod_version,
+            version                : rootProject.mod_version,
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching(['META-INF/mods.toml']) {
+        expand replaceProperties
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}

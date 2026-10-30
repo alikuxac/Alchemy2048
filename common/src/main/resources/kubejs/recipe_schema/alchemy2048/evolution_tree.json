@@ -1,0 +1,16 @@
+{
+  "type": "kubejs:recipe_schema",
+  "components": {
+    "starter": "kubejs:input_item",
+    "ladder": "kubejs:item_id_list",
+    "priority": {
+      "type": "kubejs:int",
+      "optional": 0
+    }
+  },
+  "constructor": [
+    "starter",
+    "ladder",
+    "priority"
+  ]
+}
