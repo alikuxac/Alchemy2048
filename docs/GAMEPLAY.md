@@ -33,20 +33,25 @@ If internal FE is lower than the required move cost, moves are rejected and the 
 
 1. Right-click the Alchemy Matrix block.
 2. Select a recipe from the preset panel on the left (matches items in your inventory).
-3. The machine consumes 1 starter item, charges the base FE cost, and places two Tier 1 tiles on the board.
+3. The machine consumes 1 starter item from inventory, charges the base FE cost, and places two Tier 1 tiles on the board. Creative players bypass starter item costs.
 
 ## 4. Controls and Movement
 
 - Movement: `W` (up), `S` (down), `A` (left), `D` (right), or arrow keys.
 - Merging: sliding two identical adjacent tiers together merges them into the next tier ($\text{Tier} + 1$).
-- Spawning: every legal move spawns a new Tier 1 or Tier 2 tile in an empty slot.
+- Spawning: every legal move consumes 1 starter item from player inventory and spawns a new Tier 1 or Tier 2 tile in an empty slot. If the inventory has 0 starter items, the machine blocks the move and shows an alert. Creative mode bypasses consumption.
 - Victory: reaching Tier 11 (value 2048) claims all tiles directly to the player inventory and resets the board.
 
-## 5. Claiming Rewards
+## 5. Claiming Rewards and Game Over
 
-- Claim Max: awards only the highest-tier item on the board, discarding lower tiers, and resets the board.
-- Claim All: converts every tile on the board into its corresponding item and clears the grid.
-- Game Over: triggers when all 16 cells fill with no valid moves remaining. The board locks until Claim Max or Claim All is selected.
+- Claim Max: awards the highest-tier item on the board, discards lower tiers, and resets the board.
+- Claim All: converts every tile on the board into its item and clears the grid.
+- Early cash-out: players can claim at any time during active play using the side panel buttons.
+- Game Over: triggers when all 16 cells fill with no valid moves left.
+  - The board switches to a Game Over modal with red borders, hiding background tiles to keep actions readable.
+  - Claim Max and Claim All buttons move directly onto the board modal.
+  - The side panel switches from `PLAYING` to `GAME OVER` and displays the highest tier item achieved in a gold-bordered slot.
+  - The energy display shows `OVER` and blocks further movement inputs.
 
 ## 6. Multiplayer and Mutex Locks
 

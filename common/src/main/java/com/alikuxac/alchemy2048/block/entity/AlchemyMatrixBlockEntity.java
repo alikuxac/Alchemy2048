@@ -293,8 +293,37 @@ public class AlchemyMatrixBlockEntity extends BlockEntity implements MenuProvide
             return false;
         }
 
+        EvolutionTreeRecipe recipe = match.get().value();
+        int starterSlot = -1;
+        if (player != null && !player.getAbilities().instabuild) {
+            var inv = player.getInventory();
+            for (int i = 0; i < 36; i++) {
+                ItemStack s = inv.getItem(i);
+                if (!s.isEmpty() && recipe.starter().test(s)) {
+                    starterSlot = i;
+                    break;
+                }
+            }
+            if (starterSlot == -1) {
+                player.displayClientMessage(Component.translatable("gui.alchemy2048.missing_starter"), true);
+                return false;
+            }
+        }
+
         boolean moved = Grid2048Logic.slideAndMerge(grid, direction);
         if (moved) {
+            if (player != null && !player.getAbilities().instabuild && starterSlot != -1) {
+                player.getInventory().removeItem(starterSlot, 1);
+                if (player.containerMenu instanceof AlchemyMatrixMenu menu) {
+                    int menuSlotIndex = (starterSlot < 9) ? (28 + starterSlot) : (starterSlot - 8);
+                    if (menuSlotIndex >= 0 && menuSlotIndex < menu.slots.size()) {
+                        menu.getSlot(menuSlotIndex).setChanged();
+                    }
+                    menu.broadcastChanges();
+                }
+                player.inventoryMenu.broadcastChanges();
+            }
+
             if (this.activePlayerUUID != null) {
                 playerMoves.merge(this.activePlayerUUID, 1, Integer::sum);
             }

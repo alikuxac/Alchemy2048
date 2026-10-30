@@ -69,10 +69,10 @@ public class AlchemyMatrixScreen extends AbstractContainerScreen<AlchemyMatrixMe
     private final List<AvailablePreset> availablePresets = new ArrayList<>();
     private int presetPage = 0;
 
-    private Button claimHighestButton;
-    private Button claimAllButton;
-    private Button themeButton;
-    private Button displayModeButton;
+    private ThemedButton claimHighestButton;
+    private ThemedButton claimAllButton;
+    private ThemedButton themeButton;
+    private ThemedButton displayModeButton;
 
     private ItemStack cachedStarter = ItemStack.EMPTY;
     @Nullable
@@ -91,40 +91,44 @@ public class AlchemyMatrixScreen extends AbstractContainerScreen<AlchemyMatrixMe
     protected void init() {
         super.init();
 
-        this.claimHighestButton = this.addRenderableWidget(Button.builder(
+        this.claimHighestButton = this.addRenderableWidget(new ThemedButton(
+                leftPos + BUTTON_X, topPos + 50, BUTTON_WIDTH, BUTTON_HEIGHT,
                 Component.translatable("gui.alchemy2048.claim_max"),
-                btn -> sendPayload(new ClaimPayload(ClaimPayload.MODE_HIGHEST))
-        ).bounds(leftPos + BUTTON_X, topPos + 50, BUTTON_WIDTH, BUTTON_HEIGHT)
-         .tooltip(Tooltip.create(Component.translatable("gui.alchemy2048.claim_max.tooltip")))
-         .build());
+                btn -> sendPayload(new ClaimPayload(ClaimPayload.MODE_HIGHEST)),
+                0xFFD4AF37, 0xFFFFDF00, 0xFFFFD700
+        ));
+        this.claimHighestButton.setTooltip(Tooltip.create(Component.translatable("gui.alchemy2048.claim_max.tooltip")));
 
-        this.claimAllButton = this.addRenderableWidget(Button.builder(
+        this.claimAllButton = this.addRenderableWidget(new ThemedButton(
+                leftPos + BUTTON_X, topPos + 66, BUTTON_WIDTH, BUTTON_HEIGHT,
                 Component.translatable("gui.alchemy2048.claim_all"),
-                btn -> sendPayload(new ClaimPayload(ClaimPayload.MODE_ALL))
-        ).bounds(leftPos + BUTTON_X, topPos + 66, BUTTON_WIDTH, BUTTON_HEIGHT)
-         .tooltip(Tooltip.create(Component.translatable("gui.alchemy2048.claim_all.tooltip")))
-         .build());
+                btn -> sendPayload(new ClaimPayload(ClaimPayload.MODE_ALL)),
+                0xFF2E8B57, 0xFF3CB371, 0xFF85E3B3
+        ));
+        this.claimAllButton.setTooltip(Tooltip.create(Component.translatable("gui.alchemy2048.claim_all.tooltip")));
 
-        this.themeButton = this.addRenderableWidget(Button.builder(
+        this.themeButton = this.addRenderableWidget(new ThemedButton(
+                leftPos + imageWidth - 17, topPos + 4, 12, 12,
                 Component.literal("🎨"),
                 btn -> {
                     ClientConfig.theme = ClientConfig.theme.next();
                     updateThemeTooltip();
                     playUiClick();
-                }
-        ).bounds(leftPos + imageWidth - 17, topPos + 4, 12, 12)
-         .build());
+                },
+                0, 0xFFAAAAAA, 0xFFFFFFFF
+        ));
         updateThemeTooltip();
 
-        this.displayModeButton = this.addRenderableWidget(Button.builder(
+        this.displayModeButton = this.addRenderableWidget(new ThemedButton(
+                leftPos + imageWidth - 31, topPos + 4, 12, 12,
                 Component.literal("#"),
                 btn -> {
                     ClientConfig.numberDisplay = ClientConfig.numberDisplay.next();
                     updateDisplayModeTooltip();
                     playUiClick();
-                }
-        ).bounds(leftPos + imageWidth - 31, topPos + 4, 12, 12)
-         .build());
+                },
+                0, 0xFFAAAAAA, 0xFFFFFFFF
+        ));
         updateDisplayModeTooltip();
 
         updateAvailablePresets();
@@ -278,9 +282,13 @@ public class AlchemyMatrixScreen extends AbstractContainerScreen<AlchemyMatrixMe
         if (menu.isGridEmpty()) {
             renderPlayablePresets(guiGraphics, x, y, mouseX, mouseY, theme);
         } else {
-            String playTitle = Component.translatable("gui.alchemy2048.playing").getString();
+            boolean isOver = menu.isGameOver();
+            String playTitle = isOver
+                    ? Component.translatable("gui.alchemy2048.game_over").getString()
+                    : Component.translatable("gui.alchemy2048.playing").getString();
             int pw = font.width(playTitle);
-            guiGraphics.drawString(font, playTitle, x + 10 + (62 - pw) / 2, y + 20, theme.getTitleColor(), false);
+            int titleColor = isOver ? 0xFFFF4444 : theme.getTitleColor();
+            guiGraphics.drawString(font, playTitle, x + 10 + (62 - pw) / 2, y + 20, titleColor, false);
 
             ItemStack starter = menu.getStarterStack();
             if (!starter.isEmpty()) {
@@ -289,6 +297,24 @@ public class AlchemyMatrixScreen extends AbstractContainerScreen<AlchemyMatrixMe
                 guiGraphics.fill(sx, sy, sx + 18, sy + 18, theme.getBoardBgColor());
                 guiGraphics.renderOutline(sx, sy, 18, 18, theme.getBoardOutlineColor());
                 guiGraphics.renderItem(starter, sx + 1, sy + 1);
+            }
+
+            if (isOver) {
+                byte maxTier = 0;
+                for (int i = 0; i < 16; i++) {
+                    byte t = menu.getGridCell(i);
+                    if (t > maxTier) maxTier = t;
+                }
+                if (maxTier > 0) {
+                    ItemStack maxStack = getItemStackForTier(maxTier);
+                    if (!maxStack.isEmpty()) {
+                        int mx = x + 32;
+                        int my = y + 54;
+                        guiGraphics.fill(mx, my, mx + 18, my + 18, theme.getBoardBgColor());
+                        guiGraphics.renderOutline(mx, my, 18, 18, 0xFFFFD700);
+                        guiGraphics.renderItem(maxStack, mx + 1, my + 1);
+                    }
+                }
             }
         }
 
@@ -302,6 +328,15 @@ public class AlchemyMatrixScreen extends AbstractContainerScreen<AlchemyMatrixMe
             String hint2 = Component.translatable("gui.alchemy2048.to_start").getString();
             guiGraphics.drawString(font, hint1, boardX + (BOARD_WIDTH - font.width(hint1)) / 2, boardY + 38, theme.getTitleColor(), true);
             guiGraphics.drawString(font, hint2, boardX + (BOARD_WIDTH - font.width(hint2)) / 2, boardY + 50, theme.getSubTitleColor(), true);
+        } else if (menu.isGameOver()) {
+            guiGraphics.fill(boardX, boardY, boardX + BOARD_WIDTH, boardY + BOARD_HEIGHT, theme.getBoardBgColor());
+            guiGraphics.renderOutline(boardX, boardY, BOARD_WIDTH, BOARD_HEIGHT, 0xFFFF4444);
+            String overTitle = Component.translatable("gui.alchemy2048.game_over").getString();
+            int overW = font.width(overTitle);
+            guiGraphics.drawString(font, overTitle, boardX + (BOARD_WIDTH - overW) / 2, boardY + 12, 0xFFFF4444, true);
+            String overSub = Component.translatable("gui.alchemy2048.claim_rewards").getString();
+            int subW = font.width(overSub);
+            guiGraphics.drawString(font, overSub, boardX + (BOARD_WIDTH - subW) / 2, boardY + 26, 0xFFCCCCCC, true);
         } else {
             for (int row = 0; row < Grid2048Logic.SIZE; row++) {
                 for (int col = 0; col < Grid2048Logic.SIZE; col++) {
@@ -332,16 +367,6 @@ public class AlchemyMatrixScreen extends AbstractContainerScreen<AlchemyMatrixMe
             }
         }
 
-        if (menu.isGameOver()) {
-            guiGraphics.fill(boardX, boardY, boardX + BOARD_WIDTH, boardY + BOARD_HEIGHT, 0xAA000000);
-            String overTitle = Component.translatable("gui.alchemy2048.game_over").getString();
-            int overW = font.width(overTitle);
-            guiGraphics.drawString(font, overTitle, boardX + (BOARD_WIDTH - overW) / 2, boardY + 34, 0xFFFF4444, true);
-            String overSub = Component.translatable("gui.alchemy2048.claim_rewards").getString();
-            int subW = font.width(overSub);
-            guiGraphics.drawString(font, overSub, boardX + (BOARD_WIDTH - subW) / 2, boardY + 48, theme.getTitleColor(), true);
-        }
-
         int energyBarX = x + ENERGY_BAR_X;
         int energyBarY = y + ENERGY_BAR_Y;
         guiGraphics.fill(energyBarX, energyBarY, energyBarX + ENERGY_BAR_WIDTH, energyBarY + ENERGY_BAR_HEIGHT, theme.getEnergyBarBg());
@@ -355,13 +380,19 @@ public class AlchemyMatrixScreen extends AbstractContainerScreen<AlchemyMatrixMe
             guiGraphics.fill(energyBarX + 1, energyBarY + 1, energyBarX + 1 + fillWidth, energyBarY + ENERGY_BAR_HEIGHT - 1, theme.getEnergyBarFill());
         }
 
-        String costText = Component.translatable("gui.alchemy2048.cost_fe", menu.getNextMoveCost()).getString();
-        guiGraphics.drawString(font, costText, energyBarX, y + 96, menu.hasEnoughEnergy() ? theme.getSubTitleColor() : 0xFFFF4444, false);
-
         if (menu.isGameOver()) {
-            guiGraphics.drawString(font, Component.translatable("gui.alchemy2048.over").getString(), energyBarX + 38, y + 96, 0xFFFF4444, false);
-        } else if (!menu.hasEnoughEnergy()) {
-            guiGraphics.drawString(font, Component.translatable("gui.alchemy2048.empty").getString(), energyBarX + 38, y + 96, 0xFFFF3333, false);
+            String overStr = Component.translatable("gui.alchemy2048.over").getString();
+            int ow = font.width(overStr);
+            guiGraphics.drawString(font, overStr, energyBarX + (ENERGY_BAR_WIDTH - ow) / 2, y + 96, 0xFFFF4444, false);
+        } else {
+            String costText = Component.translatable("gui.alchemy2048.cost_fe", menu.getNextMoveCost()).getString();
+            boolean enoughEnergy = menu.hasEnoughEnergy();
+            guiGraphics.drawString(font, costText, energyBarX, y + 96, enoughEnergy ? theme.getSubTitleColor() : 0xFFFF4444, false);
+            if (!enoughEnergy) {
+                String emptyText = Component.translatable("gui.alchemy2048.empty").getString();
+                int costW = font.width(costText);
+                guiGraphics.drawString(font, emptyText, energyBarX + costW + 4, y + 96, 0xFFFF3333, false);
+            }
         }
     }
 
@@ -421,11 +452,30 @@ public class AlchemyMatrixScreen extends AbstractContainerScreen<AlchemyMatrixMe
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         boolean isPlaying = !menu.isGridEmpty();
+        boolean isGameOver = menu.isGameOver();
+
         if (claimHighestButton != null && claimAllButton != null) {
             claimHighestButton.visible = isPlaying;
             claimHighestButton.active = isPlaying;
             claimAllButton.visible = isPlaying;
             claimAllButton.active = isPlaying;
+
+            if (isGameOver) {
+                int btnW = 76;
+                int btnH = 18;
+                int btnX = leftPos + BOARD_X + (BOARD_WIDTH - btnW) / 2;
+                claimHighestButton.setPosition(btnX, topPos + BOARD_Y + 42);
+                claimHighestButton.setDimensions(btnW, btnH);
+
+                claimAllButton.setPosition(btnX, topPos + BOARD_Y + 65);
+                claimAllButton.setDimensions(btnW, btnH);
+            } else {
+                claimHighestButton.setPosition(leftPos + BUTTON_X, topPos + 50);
+                claimHighestButton.setDimensions(BUTTON_WIDTH, BUTTON_HEIGHT);
+
+                claimAllButton.setPosition(leftPos + BUTTON_X, topPos + 66);
+                claimAllButton.setDimensions(BUTTON_WIDTH, BUTTON_HEIGHT);
+            }
         }
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
@@ -503,9 +553,27 @@ public class AlchemyMatrixScreen extends AbstractContainerScreen<AlchemyMatrixMe
                     guiGraphics.renderComponentTooltip(font, tip, mouseX, mouseY);
                 }
             }
+
+            if (menu.isGameOver()) {
+                int mx = x + 32;
+                int my = y + 54;
+                if (mouseX >= mx && mouseX < mx + 18 && mouseY >= my && mouseY < my + 18) {
+                    byte maxTier = 0;
+                    for (int i = 0; i < 16; i++) {
+                        byte t = menu.getGridCell(i);
+                        if (t > maxTier) maxTier = t;
+                    }
+                    if (maxTier > 0) {
+                        ItemStack maxStack = getItemStackForTier(maxTier);
+                        if (!maxStack.isEmpty()) {
+                            guiGraphics.renderTooltip(font, maxStack, mouseX, mouseY);
+                        }
+                    }
+                }
+            }
         }
 
-        if (!menu.isGridEmpty()) {
+        if (!menu.isGridEmpty() && !menu.isGameOver()) {
             for (int row = 0; row < Grid2048Logic.SIZE; row++) {
                 for (int col = 0; col < Grid2048Logic.SIZE; col++) {
                     int cx = x + GRID_START_X + col * (CELL_SIZE + CELL_GAP);
@@ -589,8 +657,10 @@ public class AlchemyMatrixScreen extends AbstractContainerScreen<AlchemyMatrixMe
         };
 
         if (dir != null) {
-            setFocused(null);
-            sendPayload(new MoveGridPayload(dir.getId()));
+            if (!menu.isGameOver()) {
+                setFocused(null);
+                sendPayload(new MoveGridPayload(dir.getId()));
+            }
             return true;
         }
 
@@ -601,6 +671,42 @@ public class AlchemyMatrixScreen extends AbstractContainerScreen<AlchemyMatrixMe
         Minecraft mc = Minecraft.getInstance();
         if (mc.getConnection() != null) {
             mc.getConnection().send(new ServerboundCustomPayloadPacket(payload));
+        }
+    }
+
+    private static class ThemedButton extends Button {
+        private final int normalBorder;
+        private final int hoverBorder;
+        private final int textColor;
+
+        ThemedButton(int x, int y, int width, int height, Component message, OnPress onPress,
+                     int normalBorder, int hoverBorder, int textColor) {
+            super(x, y, width, height, message, onPress, DEFAULT_NARRATION);
+            this.normalBorder = normalBorder;
+            this.hoverBorder = hoverBorder;
+            this.textColor = textColor;
+        }
+
+        public void setDimensions(int width, int height) {
+            this.width = width;
+            this.height = height;
+        }
+
+        @Override
+        public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+            GuiTheme theme = ClientConfig.theme != null ? ClientConfig.theme : GuiTheme.DARK;
+            int bg = !this.active ? 0xFF181818 : (this.isHoveredOrFocused() ? 0xFF3D3D3D : theme.getBoardBgColor());
+            int border = !this.active ? 0xFF333333 : (this.isHoveredOrFocused() ? hoverBorder : (normalBorder != 0 ? normalBorder : theme.getBoardOutlineColor()));
+            int txt = !this.active ? 0xFF666666 : (this.isHoveredOrFocused() ? 0xFFFFFFFF : textColor);
+
+            guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, bg);
+            guiGraphics.renderOutline(this.getX(), this.getY(), this.width, this.height, border);
+
+            net.minecraft.client.gui.Font font = Minecraft.getInstance().font;
+            int textW = font.width(this.getMessage());
+            int textX = this.getX() + (this.width - textW) / 2;
+            int textY = this.getY() + (this.height - font.lineHeight) / 2 + 1;
+            guiGraphics.drawString(font, this.getMessage(), textX, textY, txt, false);
         }
     }
 }

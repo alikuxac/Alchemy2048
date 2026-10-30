@@ -76,29 +76,45 @@ public final class ForgeNetwork {
                         return;
                     }
                     var inv = player.getInventory();
-                    int slot = payload.slotIndex();
-                    if (slot < 0 || slot >= inv.items.size()) {
-                        return;
-                    }
-                    var stack = inv.getItem(slot);
-                    if (stack.isEmpty()) {
-                        return;
-                    }
-                    var selected = player.serverLevel().getRecipeManager().byKey(payload.recipeId()).orElse(null);
+                    var manager = player.serverLevel().getRecipeManager();
+                    var selected = manager.byKey(payload.recipeId()).orElse(null);
                     if (selected == null || !(selected.value() instanceof EvolutionTreeRecipe recipe)
-                            || !recipe.isValid() || !recipe.starter().test(stack)) {
+                            || !recipe.isValid()) {
                         return;
                     }
-                    var oldStarter = blockEntity.getStarterStack().copy();
-                    if (!oldStarter.isEmpty()) {
-                        if (!player.getInventory().add(oldStarter)) {
-                            player.drop(oldStarter, false);
+
+                    int slot = payload.slotIndex();
+                    ItemStack stack = (slot >= 0 && slot < inv.items.size()) ? inv.getItem(slot) : ItemStack.EMPTY;
+                    if (stack.isEmpty() || !recipe.starter().test(stack)) {
+                        slot = -1;
+                        for (int i = 0; i < 36; i++) {
+                            ItemStack s = inv.getItem(i);
+                            if (!s.isEmpty() && recipe.starter().test(s)) {
+                                slot = i;
+                                stack = s;
+                                break;
+                            }
                         }
                     }
-                    var taken = stack.split(1);
+
+                    if (slot < 0 || stack.isEmpty() || !recipe.starter().test(stack)) {
+                        return;
+                    }
+
+                    var taken = inv.removeItem(slot, 1);
+                    if (taken.isEmpty()) {
+                        return;
+                    }
+
+                    int menuSlotIndex = (slot < 9) ? (28 + slot) : (slot - 8);
+                    if (menuSlotIndex >= 0 && menuSlotIndex < menu.slots.size()) {
+                        menu.getSlot(menuSlotIndex).setChanged();
+                    }
+
                     blockEntity.setStarterStack(taken);
                     menu.getSlot(0).set(taken);
                     menu.broadcastChanges();
+                    player.inventoryMenu.broadcastChanges();
                 }
             }
         });
