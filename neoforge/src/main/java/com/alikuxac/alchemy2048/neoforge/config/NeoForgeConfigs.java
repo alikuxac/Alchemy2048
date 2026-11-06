@@ -10,6 +10,7 @@ public final class NeoForgeConfigs {
 
     private static final ModConfigSpec.BooleanValue ENABLE_CONTRIBUTION_RATIO;
     private static final ModConfigSpec.DoubleValue COOP_TAX_RATIO;
+    private static final ModConfigSpec.DoubleValue GACHA_FAIL_RATE;
     private static final ModConfigSpec.IntValue BASE_ENERGY_COST;
     private static final ModConfigSpec.IntValue ENERGY_CAPACITY;
     private static final ModConfigSpec.IntValue MAX_ENERGY_RECEIVE;
@@ -29,6 +30,9 @@ public final class NeoForgeConfigs {
         COOP_TAX_RATIO = server
                 .comment("Probability a non-owner claim is taxed when enableContributionRatio is false.")
                 .defineInRange("coopTaxRatio", 0.5, 0.0, 1.0);
+        GACHA_FAIL_RATE = server
+                .comment("Probability each tile fails to claim when claiming all during active play or after loss.")
+                .defineInRange("gachaFailRate", 0.5, 0.0, 1.0);
         BASE_ENERGY_COST = server
                 .comment("FE required for a Tier 1 move. Cost doubles per tier.")
                 .defineInRange("baseEnergyCost", 20, 0, 10_000);
@@ -61,6 +65,7 @@ public final class NeoForgeConfigs {
     public static void bind() {
         ServerConfig.enableContributionRatioSpec = () -> SERVER_SPEC.isLoaded() ? ENABLE_CONTRIBUTION_RATIO.get() : false;
         ServerConfig.coopTaxRatioSpec = () -> SERVER_SPEC.isLoaded() ? COOP_TAX_RATIO.get() : 0.5;
+        ServerConfig.gachaFailRateSpec = () -> SERVER_SPEC.isLoaded() ? GACHA_FAIL_RATE.get() : 0.5;
         ServerConfig.baseEnergyCostSpec = () -> SERVER_SPEC.isLoaded() ? BASE_ENERGY_COST.get() : 20;
         ServerConfig.energyCapacitySpec = () -> SERVER_SPEC.isLoaded() ? ENERGY_CAPACITY.get() : 50_000;
         ServerConfig.maxEnergyReceiveSpec = () -> SERVER_SPEC.isLoaded() ? MAX_ENERGY_RECEIVE.get() : 2_500;

@@ -335,7 +335,7 @@ public class AlchemyMatrixBlockEntity extends BlockEntity implements MenuProvide
 
             if (maxTier >= winTier) {
 
-                boolean fullyClaimed = claimAll(player);
+                boolean fullyClaimed = claimAll(player, false);
                 if (this.level instanceof ServerLevel serverLevel) {
                     serverLevel.playSound(null, worldPosition, SoundEvents.PLAYER_LEVELUP, SoundSource.BLOCKS, 1.0f, 1.0f);
                 }
@@ -387,10 +387,11 @@ public class AlchemyMatrixBlockEntity extends BlockEntity implements MenuProvide
 
         if (!itemStack.isEmpty()) {
             if (player != null) {
+                Component itemName = itemStack.getHoverName();
                 if (!giveOrDropClaimedItem(player, itemStack)) {
                     return;
                 }
-                player.displayClientMessage(Component.translatable("message.alchemy2048.claimed_highest", itemStack.getHoverName()), true);
+                player.displayClientMessage(Component.translatable("message.alchemy2048.claimed_highest", itemName), true);
             } else {
                 Containers.dropItemStack(level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), itemStack);
             }
@@ -420,7 +421,12 @@ public class AlchemyMatrixBlockEntity extends BlockEntity implements MenuProvide
     }
 
     public boolean claimAll(@Nullable Player player) {
+        return claimAll(player, true);
+    }
+
+    public boolean claimAll(@Nullable Player player, boolean applyGachaFail) {
         if (level == null || level.isClientSide) return false;
+        if (isGridEmpty()) return false;
         if (isClaimBlockedByMissingRecipe(player)) return false;
 
         migrateGridIfNeeded();
@@ -428,8 +434,13 @@ public class AlchemyMatrixBlockEntity extends BlockEntity implements MenuProvide
         Optional<RecipeHolder<EvolutionTreeRecipe>> match = getActiveRecipe();
         EvolutionTreeRecipe recipe = match.map(RecipeHolder::value).orElse(null);
 
-        boolean claimedAny = false;
+        boolean isCreative = player != null && player.getAbilities().instabuild;
+        boolean shouldApplyGacha = applyGachaFail && !isCreative && ServerConfig.gachaFailRate > 0.0;
+
+        int claimedCount = 0;
+        int failedCount = 0;
         boolean allClaimed = true;
+
         for (int i = 0; i < grid.length; i++) {
             if (grid[i] > 0) {
                 byte tier = grid[i];
@@ -442,11 +453,18 @@ public class AlchemyMatrixBlockEntity extends BlockEntity implements MenuProvide
                         stack = new ItemStack(BuiltInRegistries.ITEM.get(id));
                     }
                 }
-                
+
                 if (stack.isEmpty()) {
                     allClaimed = false;
                     continue;
                 }
+
+                if (shouldApplyGacha && random.nextDouble() < ServerConfig.gachaFailRate) {
+                    failedCount++;
+                    grid[i] = 0;
+                    continue;
+                }
+
                 if (player != null) {
                     if (!giveOrDropClaimedItem(player, stack)) {
                         allClaimed = false;
@@ -455,12 +473,22 @@ public class AlchemyMatrixBlockEntity extends BlockEntity implements MenuProvide
                 } else {
                     Containers.dropItemStack(level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), stack);
                 }
-                claimedAny = true;
+                claimedCount++;
                 grid[i] = 0;
             }
         }
-        if (claimedAny) {
+
+        if (failedCount > 0) {
             if (player != null) {
+                player.displayClientMessage(Component.translatable("message.alchemy2048.claim_all_gacha_fail", failedCount), true);
+            }
+            if (this.level instanceof ServerLevel serverLevel) {
+                serverLevel.playSound(null, worldPosition, SoundEvents.ITEM_BREAK, SoundSource.BLOCKS, 1.0f, 0.9f);
+            }
+        }
+
+        if (claimedCount > 0) {
+            if (failedCount == 0 && player != null) {
                 player.displayClientMessage(Component.translatable("message.alchemy2048.all_claimed"), true);
             }
             if (this.level instanceof ServerLevel serverLevel) {

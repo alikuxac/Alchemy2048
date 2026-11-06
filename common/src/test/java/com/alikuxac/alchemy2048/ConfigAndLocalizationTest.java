@@ -24,6 +24,7 @@ public class ConfigAndLocalizationTest {
     void testServerConfigDefaults() {
         assertFalse(ServerConfig.enableContributionRatio);
         assertEquals(0.5, ServerConfig.coopTaxRatio, 0.001);
+        assertEquals(0.5, ServerConfig.gachaFailRate, 0.001);
         assertEquals(20, ServerConfig.baseEnergyCost);
         assertEquals(50_000, ServerConfig.energyCapacity);
         assertEquals(2_500, ServerConfig.maxEnergyReceive);
@@ -56,6 +57,7 @@ public class ConfigAndLocalizationTest {
         ServerConfig.mutexDistanceBlocksSpec = () -> 16.0;
         ServerConfig.enableContributionRatioSpec = () -> true;
         ServerConfig.coopTaxRatioSpec = () -> 0.25;
+        ServerConfig.gachaFailRateSpec = () -> 0.8;
 
         ServerConfig.syncFromSpec();
 
@@ -65,6 +67,7 @@ public class ConfigAndLocalizationTest {
         assertEquals(16.0, ServerConfig.mutexDistanceBlocks, 0.001);
         assertTrue(ServerConfig.enableContributionRatio);
         assertEquals(0.25, ServerConfig.coopTaxRatio, 0.001);
+        assertEquals(0.8, ServerConfig.gachaFailRate, 0.001);
         assertEquals(123, EnergyLogic.getBaseCost());
         assertEquals(777, EnergyLogic.getCapacity());
     }

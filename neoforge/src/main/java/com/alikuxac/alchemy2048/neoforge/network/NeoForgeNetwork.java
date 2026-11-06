@@ -55,12 +55,15 @@ public final class NeoForgeNetwork {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player) {
                 if (player.containerMenu instanceof AlchemyMatrixMenu menu && menu.getBlockEntity() != null) {
+                    var blockEntity = menu.getBlockEntity();
                     if (payload.mode() == ClaimPayload.MODE_HIGHEST) {
-                        menu.getBlockEntity().claimHighest(player);
+                        blockEntity.claimHighest(player);
                     } else if (payload.mode() == ClaimPayload.MODE_ALL) {
-                        menu.getBlockEntity().claimAll(player);
+                        if (!blockEntity.isGridEmpty()) {
+                            blockEntity.claimAll(player);
+                        }
                     }
-                    menu.getSlot(0).set(menu.getBlockEntity().getStarterStack());
+                    menu.getSlot(0).set(blockEntity.getStarterStack());
                     menu.broadcastChanges();
                 }
             }

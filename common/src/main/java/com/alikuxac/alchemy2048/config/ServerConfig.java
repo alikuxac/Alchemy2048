@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 public final class ServerConfig {
     public static boolean enableContributionRatio = false;
     public static double coopTaxRatio = 0.5;
+    public static double gachaFailRate = 0.5;
     public static int baseEnergyCost = 20;
     public static int energyCapacity = 50_000;
     public static int maxEnergyReceive = 2_500;
@@ -12,6 +13,7 @@ public final class ServerConfig {
 
     public static Supplier<Boolean> enableContributionRatioSpec = () -> false;
     public static Supplier<Double> coopTaxRatioSpec = () -> 0.5;
+    public static Supplier<Double> gachaFailRateSpec = () -> 0.5;
     public static Supplier<Integer> baseEnergyCostSpec = () -> 20;
     public static Supplier<Integer> energyCapacitySpec = () -> 50_000;
     public static Supplier<Integer> maxEnergyReceiveSpec = () -> 2_500;
@@ -22,6 +24,7 @@ public final class ServerConfig {
     public static void syncFromSpec() {
         enableContributionRatio = enableContributionRatioSpec.get();
         coopTaxRatio = coopTaxRatioSpec.get();
+        gachaFailRate = gachaFailRateSpec.get();
         baseEnergyCost = baseEnergyCostSpec.get();
         energyCapacity = energyCapacitySpec.get();
         maxEnergyReceive = maxEnergyReceiveSpec.get();
@@ -31,6 +34,7 @@ public final class ServerConfig {
     public static void resetToDefaults() {
         enableContributionRatio = false;
         coopTaxRatio = 0.5;
+        gachaFailRate = 0.5;
         baseEnergyCost = 20;
         energyCapacity = 50_000;
         maxEnergyReceive = 2_500;
@@ -41,6 +45,7 @@ public final class ServerConfig {
         resetToDefaults();
         enableContributionRatioSpec = () -> false;
         coopTaxRatioSpec = () -> 0.5;
+        gachaFailRateSpec = () -> 0.5;
         baseEnergyCostSpec = () -> 20;
         energyCapacitySpec = () -> 50_000;
         maxEnergyReceiveSpec = () -> 2_500;

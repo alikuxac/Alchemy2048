@@ -14,6 +14,7 @@ File path: `config/alchemy2048-server.toml` (or the world save directory). Optio
 | `mutexDistanceBlocks` | Double | `8.0` | `2.0` - `64.0` | Maximum distance a player can step from the block before releasing the interaction lock. |
 | `enableContributionRatio`| Boolean | `false` | `true` / `false` | Scales multiplayer claims by the share of moves each player made on the board. |
 | `coopTaxRatio` | Double | `0.5` | `0.0` - `1.0` | Item loss rate applied when a non-owner claims a board and `enableContributionRatio` is false. |
+| `gachaFailRate` | Double | `0.5` | `0.0` - `1.0` | Failure rate per tile during Claim All in Survival mode. Set to 0.0 to disable. |
 
 ### Presets
 - Casual / Singleplayer:
